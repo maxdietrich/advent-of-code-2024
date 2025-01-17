@@ -4,9 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
-	"math"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 )
@@ -18,38 +16,34 @@ type ListsFromInput struct {
 
 func main() {
 	listsFromInput := readInputLists()
-	sortedNumbersInLeftList := toSortedIntList(listsFromInput.leftList)
-	sortedNumbersInRightList := toSortedIntList(listsFromInput.rightList)
-	if len(sortedNumbersInLeftList) != len(sortedNumbersInRightList) {
-		log.Fatalf("Input lists have different lengths: %d and %d", len(sortedNumbersInLeftList), len(sortedNumbersInRightList))
+	leftList := convertToIntList(listsFromInput.leftList)
+	rightList := convertToIntList(listsFromInput.rightList)
+	appearancesInRightList := determineNumberOfAppearances(rightList)
+	similarityScore := 0
+	for _, leftEntry := range leftList {
+		similarityScore += leftEntry * appearancesInRightList[leftEntry]
 	}
-	sumOfDifferences := 0
-	for i := 0; i < len(sortedNumbersInLeftList); i++ {
-		difference := int(math.Abs(float64(sortedNumbersInLeftList[i] - sortedNumbersInRightList[i])))
-		sumOfDifferences += difference
-	}
-	fmt.Println(sumOfDifferences)
+	fmt.Println(similarityScore)
 }
 
-func toSortedIntList(stringList []string) []int {
-	intList, err := convertToIntList(stringList)
-	if err != nil {
-		log.Fatalf("Error converting list to int: %v", err)
+func determineNumberOfAppearances(list []int) map[int]int {
+	appearanceMap := make(map[int]int)
+	for _, entry := range list {
+		appearanceMap[entry] = appearanceMap[entry] + 1
 	}
-	slices.Sort(intList)
-	return intList
+	return appearanceMap
 }
 
-func convertToIntList(stringList []string) ([]int, error) {
+func convertToIntList(stringList []string) []int {
 	intList := make([]int, 0, len(stringList))
 	for _, listEntry := range stringList {
 		intValue, err := strconv.Atoi(listEntry)
 		if err != nil {
-			return nil, fmt.Errorf("could not convert value %s to int: %w", listEntry, err)
+			log.Fatalf("could not convert value %s to int: %v", listEntry, err)
 		}
 		intList = append(intList, intValue)
 	}
-	return intList, nil
+	return intList
 }
 
 func readInputLists() ListsFromInput {
